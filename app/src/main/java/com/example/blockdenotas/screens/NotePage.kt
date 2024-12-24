@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.blockdenotas.ui.theme.black20
@@ -43,21 +42,19 @@ import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
 
 var globalFontSize = 20
-var globalBackgroundColor = black20
 
 @Composable
-fun TopAppBarNote() {
+fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
     var title by remember { mutableStateOf("") }
 
     var focus by remember { mutableStateOf(false) }
     var settingState by remember { mutableStateOf(false) }
 
     var colorState by remember { mutableStateOf(false) }
-    var colorSelected by remember { mutableStateOf(1) }
-    var backgroundColor by remember { mutableStateOf(black20) }
+    var colorSelected by remember { mutableIntStateOf(1) }
 
     var fontState by remember { mutableStateOf(false) }
-    var fontSize by remember { mutableStateOf(20) }
+    var fontSize by remember { mutableIntStateOf(20) }
     var fontSelected by remember { mutableIntStateOf(2) }
 
     TopAppBar(
@@ -174,7 +171,7 @@ fun TopAppBarNote() {
                 content = {
                     DropdownMenuItem(
                         onClick = {
-                            backgroundColor = black20
+                            onBackgroundColorChange(black20)
                             colorSelected = 1
                             colorState = !colorState
                         },
@@ -192,7 +189,7 @@ fun TopAppBarNote() {
                     )
                     DropdownMenuItem(
                         onClick = {
-                            backgroundColor = green10
+                            onBackgroundColorChange(green10)
                             colorSelected = 2
                             colorState = !colorState
                         },
@@ -210,7 +207,7 @@ fun TopAppBarNote() {
                     )
                     DropdownMenuItem(
                         onClick = {
-                            backgroundColor = orange10
+                            onBackgroundColorChange(orange10)
                             colorSelected = 3
                             colorState = !colorState
                         },
@@ -229,7 +226,7 @@ fun TopAppBarNote() {
                     )
                     DropdownMenuItem(
                         onClick = {
-                            backgroundColor = blue10
+                            onBackgroundColorChange(blue10)
                             colorSelected = 4
                             colorState = !colorState
                         },
@@ -245,7 +242,6 @@ fun TopAppBarNote() {
                             )
                         }
                     )
-                    globalBackgroundColor = backgroundColor
                 }
             )
             //menu desplegable de fuentes
@@ -295,7 +291,7 @@ fun TopAppBarNote() {
             )
         },
         colors = TopAppBarColors(
-            containerColor = green10,
+            containerColor = if (colorSelected == 2) blue10 else green10,
             actionIconContentColor = black20,
             navigationIconContentColor = black20,
             titleContentColor = black20,
@@ -305,8 +301,8 @@ fun TopAppBarNote() {
 }
 
 @Composable
-fun NoteBody() {
-    var content by remember { mutableStateOf("$globalFontSize") }
+fun NoteBody(color: Color) {
+    var content by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -323,7 +319,7 @@ fun NoteBody() {
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = Color.White,
+                focusedTextColor = if (color == orange10) Color.Black else Color.White,
                 unfocusedTextColor = Color.White,
                 cursorColor = Color.White
             ),
@@ -332,29 +328,28 @@ fun NoteBody() {
             textStyle = TextStyle(
                 fontSize = globalFontSize.sp
             )
-
         )
     }
 }
 
 @Composable
 fun MainNote() {
+    var backgroundColor by remember { mutableStateOf(black20) }
+
     Scaffold(
-        topBar = { TopAppBarNote() },
-        containerColor = globalBackgroundColor
+        topBar = {
+            TopAppBarNote(
+                onBackgroundColorChange = { newColor ->
+                    backgroundColor = newColor
+                }
+            )
+        },
+        containerColor = backgroundColor
     ) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding)
         ){
-            NoteBody()
+            NoteBody(backgroundColor)
         }
     }
-}
-
-@Preview(showSystemUi = true, showBackground = true,
-    device = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"
-)
-@Composable
-fun PreviewMainNote() {
-    MainNote()
 }
