@@ -33,21 +33,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.blockdenotas.sql.lite.SQLite
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
 
 var globalFontSize = 20
+var globalContent = ""
 
 @Composable
 fun DropDownMenuColors(backgroundColor: Color, onClick: () -> Unit, isColorSelected: Boolean) {
     DropdownMenuItem(
         onClick = {
-            onClick
+            onClick()
         },
         text = {
             Box(
@@ -73,7 +77,9 @@ fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boo
     }
 
     DropdownMenuItem(
-        onClick = { onClick },
+        onClick = {
+            onClick()
+        },
         text = {
             Text(
                 text = label
@@ -87,7 +93,13 @@ fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boo
 }
 
 @Composable
-fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
+fun TopAppBarNote(
+    onBackgroundColorChange: (Color) -> Unit,
+    navController: NavHostController
+) {
+
+    val db = SQLite(context = LocalContext.current)
+
     var title by remember { mutableStateOf("") }
 
     var focus by remember { mutableStateOf(false) }
@@ -95,6 +107,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
 
     var colorState by remember { mutableStateOf(false) }
     var colorSelected by remember { mutableIntStateOf(1) }
+    var backgroundColor by remember { mutableStateOf("black") }
 
     var fontState by remember { mutableStateOf(false) }
     var fontSize by remember { mutableIntStateOf(20) }
@@ -131,7 +144,15 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
         },
         navigationIcon = {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    db.insertData(
+                        titulo = title,
+                        contenido = globalContent,
+                        colorDeFondo = backgroundColor,
+                        tamanoDeTexto = fontSize
+                    )
+                    navController.popBackStack()
+                },
                 content = {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBack,
@@ -218,6 +239,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     isColorSelected = colorSelected == 1,
                     onClick = {
                         onBackgroundColorChange(black20)
+                        backgroundColor = "black"
                         colorSelected = 1
                         colorState = !colorState
                     }
@@ -228,6 +250,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     isColorSelected = colorSelected == 2,
                     onClick = {
                         onBackgroundColorChange(green10)
+                        backgroundColor = "green"
                         colorSelected = 2
                         colorState = !colorState
                     }
@@ -238,6 +261,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     isColorSelected = colorSelected == 3,
                     onClick = {
                         onBackgroundColorChange(orange10)
+                        backgroundColor = "orange"
                         colorSelected = 3
                         colorState = !colorState
                     }
@@ -248,6 +272,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     isColorSelected = colorSelected == 4,
                     onClick = {
                         onBackgroundColorChange(blue10)
+                        backgroundColor = "blue"
                         colorSelected = 4
                         colorState = !colorState
                     }
@@ -332,10 +357,11 @@ fun NoteBody(color: Color) {
             )
         )
     }
+    globalContent = content
 }
 
 @Composable
-fun MainNote() {
+fun MainNote(navController: NavHostController) {
     var backgroundColor by remember { mutableStateOf(black20) }
 
     Scaffold(
@@ -343,7 +369,8 @@ fun MainNote() {
             TopAppBarNote(
                 onBackgroundColorChange = { newColor ->
                     backgroundColor = newColor
-                }
+                },
+                navController
             )
         },
         containerColor = backgroundColor

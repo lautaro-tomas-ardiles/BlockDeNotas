@@ -41,9 +41,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.blockdenotas.navegation.Screen
+import com.example.blockdenotas.sql.lite.SQLite
 import com.example.blockdenotas.ui.theme.black10
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
@@ -51,9 +55,11 @@ import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
 
 data class NoteCardData(
+    val id: Int = 0, // Add an ID field
     val backGroundColor: String,
     val title: String,
-    val content: String
+    val content: String,
+    val fontSize: Int
 )
 
 @Composable
@@ -102,7 +108,10 @@ fun SearchBar(){
             onValueChange = { busqueda = it },
             placeholder = {
                 if (!focus) {
-                    Text("busqueda de notas")
+                    Text(
+                        "busqueda de notas",
+                        color = black10
+                    )
                 }
             },
             shape = RoundedCornerShape(100),
@@ -112,7 +121,10 @@ fun SearchBar(){
                 unfocusedBorderColor = Color.Transparent,
                 cursorColor = black10,
                 focusedTrailingIconColor = black10,
-                unfocusedTrailingIconColor = black10
+                unfocusedTrailingIconColor = black10,
+                disabledTextColor = black10,
+                focusedTextColor = black10,
+                unfocusedTextColor = black10
             ),
             trailingIcon = {
                 IconButton(
@@ -132,31 +144,29 @@ fun SearchBar(){
                     focus = it.isFocused
                 }
         )
-        Spacer(modifier = Modifier.padding(10.dp))
-
-        DivisorWithText()
 
     }
 }
 
 @Composable
-fun NoteCard(backGroundColor: String, title: String, content: String){
+fun NoteCard(noteCardData: NoteCardData){
 
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp.dp
 
-    var cardcolor: Color = blue10
+    var cardcolor = when (noteCardData.backGroundColor){
 
-    when (backGroundColor){
-        "blue" -> cardcolor = blue10
+        "blue" -> blue10
 
-        "green" -> cardcolor = green10
+        "green" -> green10
 
-        "orange" -> cardcolor = orange10
+        "orange" -> orange10
+
+        else -> blue10
     }
 
     Card(
-        onClick = { /*TODO*/ },
+        onClick = {  },
         colors = CardDefaults.cardColors(
             containerColor = cardcolor
         ),
@@ -168,14 +178,14 @@ fun NoteCard(backGroundColor: String, title: String, content: String){
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Text(
-                    text = title,
-                    color = if (backGroundColor == "orange") Color.Black else Color.White,
+                    text = noteCardData.title,
+                    color = if (noteCardData.backGroundColor == "orange") Color.Black else Color.White,
                     fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.padding(2.dp))
                 Text(
-                    text = content,
-                    color = if (backGroundColor == "orange") Color.Black else Color.White,
+                    text = noteCardData.content,
+                    color = if (noteCardData.backGroundColor == "orange") Color.Black else Color.White,
                     fontSize = 15.sp,
                     maxLines = 10
                 )
@@ -185,39 +195,7 @@ fun NoteCard(backGroundColor: String, title: String, content: String){
 }
 
 @Composable
-fun MosaicNoteCard(){
-    val noteCards = listOf(
-        NoteCardData(
-            "blue",
-            "Nota 1",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor."
-        ),
-        NoteCardData(
-            "green",
-            "Nota 2",
-            "Lorem idipiscing elit. Cras elementum, nulla vel eleifend consequat, libero lectus ullamcorper eros, sed gravida tellus ipsum ut enim."
-        ),
-        NoteCardData(
-            "orange",
-            "Nota 3",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec mollis hendrerit r nec, elementum odio."
-        ),
-        NoteCardData(
-            "blue",
-            "Nota 4",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec mollis hendrerit r nec, elementum odio Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor."
-        ),
-        NoteCardData(
-            "green",
-            "Nota 5",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras elementum, nulla vel eleifend consequat, libero lectus ullamcorper eros, sed gravida tellus ipsum ut enim."
-        ),
-        NoteCardData(
-            "orange",
-            "Nota 6",
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec mollis hendrerit risus. Proin nec nisl volutpat, tincidunt arcu nec, elementum odio."
-        )
-    )
+fun MosaicNoteCard(noteCards: List<NoteCardData>){
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
@@ -225,15 +203,10 @@ fun MosaicNoteCard(){
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         contentPadding = PaddingValues(10.dp),
         content = {
-            items(noteCards) { noteCard ->
-                NoteCard(
-                    backGroundColor = noteCard.backGroundColor,
-                    title = noteCard.title,
-                    content = noteCard.content
-                )
+            items(noteCards) { data ->
+                NoteCard(noteCardData = data)
             }
         }
-
     )
 }
 
@@ -259,9 +232,11 @@ fun MainBottomAppBar(){
 }
 
 @Composable
-fun MainFloatingActionButton(){
+fun MainFloatingActionButton(navController: NavHostController){
     FloatingActionButton(
-        onClick = { /*TODO*/ },
+        onClick = {
+            navController.navigate(Screen.Note.route)
+        },
         containerColor = orange10,
         content = {
             Icon(
@@ -274,16 +249,19 @@ fun MainFloatingActionButton(){
 }
 
 @Composable
-fun MainPage(){
+fun MainPage(navController: NavHostController) {
+    val db = SQLite(context = LocalContext.current)
+    val allData = db.getAllData()
+
     Scaffold(
         topBar = {
-            SearchBar()
+            //SearchBar()
         },
         bottomBar = {
             MainBottomAppBar()
         },
         floatingActionButton = {
-            MainFloatingActionButton()
+            MainFloatingActionButton(navController)
         },
         containerColor = black20
     ) {
@@ -292,7 +270,11 @@ fun MainPage(){
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
-            MosaicNoteCard()
+            Spacer(modifier = Modifier.padding(10.dp))
+
+            DivisorWithText()
+
+            MosaicNoteCard(allData)
         }
     }
 }
