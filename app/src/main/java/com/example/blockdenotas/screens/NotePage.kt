@@ -44,6 +44,49 @@ import com.example.blockdenotas.ui.theme.orange10
 var globalFontSize = 20
 
 @Composable
+fun DropDownMenuColors(backgroundColor: Color, onClick: () -> Unit, isColorSelected: Boolean) {
+    DropdownMenuItem(
+        onClick = {
+            onClick
+        },
+        text = {
+            Box(
+                modifier = Modifier
+                    .background(backgroundColor)
+                    .size(30.dp)
+                    .border(
+                        width = 2.dp,
+                        color = if (isColorSelected) Color.White else Color.Transparent
+                    )
+            )
+        }
+    )
+}
+
+@Composable
+fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boolean) {
+    val label = when (fontSize) {
+        15 -> "pequeña"
+        20 -> "mediana"
+        25 -> "grande"
+        else -> "special"
+    }
+
+    DropdownMenuItem(
+        onClick = { onClick },
+        text = {
+            Text(
+                text = label
+            )
+        },
+        modifier = Modifier.border(
+            width = 2.dp,
+            color = if (isFontSizeSelected) Color.White else Color.Transparent
+        )
+    )
+}
+
+@Composable
 fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
     var title by remember { mutableStateOf("") }
 
@@ -102,193 +145,152 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
             IconButton(
                 onClick = {
                     settingState = !settingState
-                },
-                content = {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = "Settings"
-                    )
                 }
-            )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = "Settings"
+                )
+            }
+
             //menu desplegable de configuracion
             DropdownMenu(
                 expanded = settingState,
                 onDismissRequest = {
                     settingState = !settingState
-                },
-                content = {
-                    //item de la configuracion
-                    DropdownMenuItem(
-                        onClick = { colorState = !colorState },
-                        text = {
-                            Text(
-                                text = "Color de fondo"
-                            )
-                        },
-                        trailingIcon = {
-                            //icono para desplegar el menu de colores
-                            IconButton(
-                                onClick = { colorState = !colorState },
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ArrowDropDown,
-                                        contentDescription = "DROPDOWN",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            )
-                        }
-                    )
-                    //item de la configuracion
-                    DropdownMenuItem(
-                        onClick = { fontState = !fontState },
-                        text = {
-                            Text(
-                                text = "Tamaño de fuente"
-                            )
-                        },
-                        trailingIcon = {
-                            //icono para desplegar el menu de fuentes
-                            IconButton(
-                                onClick = { fontState = !fontState },
-                                content = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ArrowDropDown,
-                                        contentDescription = "DROPDOWN",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            )
-                        }
-                    )
                 }
-            )
+            ) {
+                //item de la configuracion
+                DropdownMenuItem(
+                    onClick = { colorState = !colorState },
+                    text = {
+                        Text(
+                            text = "Color de fondo"
+                        )
+                    },
+                    trailingIcon = {
+                        //icono para desplegar el menu de colores
+                        IconButton(
+                            onClick = { colorState = !colorState },
+                            content = {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowDropDown,
+                                    contentDescription = "DROPDOWN",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        )
+                    }
+                )
+                //item de la configuracion
+                DropdownMenuItem(
+                    onClick = { fontState = !fontState },
+                    text = {
+                        Text(
+                            text = "Tamaño de fuente"
+                        )
+                    },
+                    trailingIcon = {
+                        //icono para desplegar el menu de fuentes
+                        IconButton(
+                            onClick = { fontState = !fontState },
+                            content = {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowDropDown,
+                                    contentDescription = "DROPDOWN",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+
             //menu desplegable de colores
             DropdownMenu(
                 expanded = colorState,
-                onDismissRequest = { colorState = !colorState },
+                onDismissRequest = { colorState = !colorState }
                 //colores de fondo
-                content = {
-                    DropdownMenuItem(
-                        onClick = {
-                            onBackgroundColorChange(black20)
-                            colorSelected = 1
-                            colorState = !colorState
-                        },
-                        text = {
-                            Box(
-                                modifier = Modifier
-                                    .background(black20)
-                                    .size(30.dp)
-                                    .border(
-                                        width = 2.dp,
-                                        color = if (colorSelected == 1) orange10 else Color.Transparent
-                                    )
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        onClick = {
-                            onBackgroundColorChange(green10)
-                            colorSelected = 2
-                            colorState = !colorState
-                        },
-                        text = {
-                            Box(
-                                modifier = Modifier
-                                    .background(green10)
-                                    .size(30.dp)
-                                .border(
-                                    width = 2.dp,
-                                    color = if (colorSelected == 2) orange10 else Color.Transparent
-                                )
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        onClick = {
-                            onBackgroundColorChange(orange10)
-                            colorSelected = 3
-                            colorState = !colorState
-                        },
-                        text = {
-                            Box(
-                                modifier = Modifier
-                                    .background(orange10)
-                                    .size(30.dp)
-                                    .border(
-                                        width = 2.dp,
-                                        color = if (colorSelected == 3) blue10 else Color.Transparent
-                                    )
+            ) {
 
-                            )
-                        }
-                    )
-                    DropdownMenuItem(
-                        onClick = {
-                            onBackgroundColorChange(blue10)
-                            colorSelected = 4
-                            colorState = !colorState
-                        },
-                        text = {
-                            Box(
-                                modifier = Modifier
-                                    .background(blue10)
-                                    .size(30.dp)
-                                    .border(
-                                        width = 2.dp,
-                                        color = if (colorSelected == 4) orange10 else Color.Transparent
-                                    )
-                            )
-                        }
-                    )
-                }
-            )
+                DropDownMenuColors(
+                    backgroundColor = black20,
+                    isColorSelected = colorSelected == 1,
+                    onClick = {
+                        onBackgroundColorChange(black20)
+                        colorSelected = 1
+                        colorState = !colorState
+                    }
+                )
+
+                DropDownMenuColors(
+                    backgroundColor = green10,
+                    isColorSelected = colorSelected == 2,
+                    onClick = {
+                        onBackgroundColorChange(green10)
+                        colorSelected = 2
+                        colorState = !colorState
+                    }
+                )
+
+                DropDownMenuColors(
+                    backgroundColor = orange10,
+                    isColorSelected = colorSelected == 3,
+                    onClick = {
+                        onBackgroundColorChange(orange10)
+                        colorSelected = 3
+                        colorState = !colorState
+                    }
+                )
+
+                DropDownMenuColors(
+                    backgroundColor = blue10,
+                    isColorSelected = colorSelected == 4,
+                    onClick = {
+                        onBackgroundColorChange(blue10)
+                        colorSelected = 4
+                        colorState = !colorState
+                    }
+                )
+            }
+
             //menu desplegable de fuentes
             DropdownMenu(
                 expanded = fontState,
-                onDismissRequest = { fontState = !fontState },
+                onDismissRequest = { fontState = !fontState }
                 //fuentes de texto
-                content = {
-                    DropdownMenuItem(
-                        text = { Text(text = "pequeña") },
-                        onClick = {
-                            fontSize = 15
-                            fontSelected = 1
-                            fontState = !fontState
-                        },
-                        modifier = Modifier.border(
-                            width = 2.dp,
-                            color = if (fontSelected == 1) orange10 else Color.Transparent
-                        )
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "mediana") },
-                        onClick = {
-                            fontSize = 20
-                            fontSelected = 2
-                            fontState = !fontState
-                        },
-                        modifier = Modifier.border(
-                            width = 2.dp,
-                            color = if (fontSelected == 2) orange10 else Color.Transparent
-                        )
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "grande") },
-                        onClick = {
-                            fontSize = 25
-                            fontSelected = 3
-                            fontState = !fontState
-                        },
-                        modifier = Modifier.border(
-                            width = 2.dp,
-                            color = if (fontSelected == 3) orange10 else Color.Transparent
-                        )
-                    )
-                    globalFontSize = fontSize
-                }
-            )
+            ) {
+                DropDownMenuFont(
+                    fontSize = 15,
+                    isFontSizeSelected = fontSelected == 1,
+                    onClick = {
+                        fontSize = 15
+                        fontSelected = 1
+                        fontState = !fontState
+                    }
+                )
+
+                DropDownMenuFont(
+                    fontSize = 20,
+                    isFontSizeSelected = fontSelected == 2,
+                    onClick = {
+                        fontSize = 20
+                        fontSelected = 2
+                        fontState = !fontState
+                    }
+                )
+
+                DropDownMenuFont(
+                    fontSize = 25,
+                    isFontSizeSelected = fontSelected == 3,
+                    onClick = {
+                        fontSize = 25
+                        fontSelected = 3
+                        fontState = !fontState
+                    }
+                )
+                globalFontSize = fontSize
+            }
         },
         colors = TopAppBarColors(
             containerColor = if (colorSelected == 2) blue10 else green10,
@@ -345,7 +347,9 @@ fun MainNote() {
             )
         },
         containerColor = backgroundColor
-    ) { innerPadding ->
+    ) {
+        innerPadding ->
+
         Column(
             modifier = Modifier.padding(innerPadding)
         ){

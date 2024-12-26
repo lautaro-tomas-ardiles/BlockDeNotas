@@ -2,14 +2,12 @@
 
 package com.example.blockdenotas.screens
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -44,10 +42,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.blockdenotas.ui.theme.BlockDeNotasTheme
 import com.example.blockdenotas.ui.theme.black10
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
@@ -280,23 +276,23 @@ fun MainFloatingActionButton(){
 @Composable
 fun MainPage(){
     Scaffold(
-        topBar = { SearchBar() },
-        bottomBar = { MainBottomAppBar() },
-        floatingActionButton = { MainFloatingActionButton() },
+        topBar = {
+            SearchBar()
+        },
+        bottomBar = {
+            MainBottomAppBar()
+        },
+        floatingActionButton = {
+            MainFloatingActionButton()
+        },
         containerColor = black20
-    ){contentPadding ->
+    ) {
+        contentPadding ->
+
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
             MosaicNoteCard()
         }
-    }
-}
-
-@Preview(showBackground = true, device = "id:Nexus S", showSystemUi = true)
-@Composable
-fun PreviewMainPage (){
-    BlockDeNotasTheme {
-        MainPage()
     }
 }
