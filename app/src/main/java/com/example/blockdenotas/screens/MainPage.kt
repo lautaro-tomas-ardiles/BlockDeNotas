@@ -53,7 +53,7 @@ import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
-
+//pantalla 1
 data class NoteCardData(
     val id: Int = 0, // Add an ID field
     val backGroundColor: String,
@@ -149,7 +149,7 @@ fun SearchBar(){
 }
 
 @Composable
-fun NoteCard(noteCardData: NoteCardData){
+fun NoteCard(noteCardData: NoteCardData, navController: NavHostController){
 
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp.dp
@@ -166,7 +166,7 @@ fun NoteCard(noteCardData: NoteCardData){
     }
 
     Card(
-        onClick = {  },
+        onClick = { navController.navigate("note/${noteCardData.id}") },
         colors = CardDefaults.cardColors(
             containerColor = cardcolor
         ),
@@ -195,8 +195,7 @@ fun NoteCard(noteCardData: NoteCardData){
 }
 
 @Composable
-fun MosaicNoteCard(noteCards: List<NoteCardData>){
-
+fun MosaicNoteCard(noteCards: List<NoteCardData>, navController: NavHostController) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         verticalItemSpacing = 10.dp,
@@ -204,7 +203,7 @@ fun MosaicNoteCard(noteCards: List<NoteCardData>){
         contentPadding = PaddingValues(10.dp),
         content = {
             items(noteCards) { data ->
-                NoteCard(noteCardData = data)
+                NoteCard(noteCardData = data, navController = navController)
             }
         }
     )
@@ -235,7 +234,7 @@ fun MainBottomAppBar(){
 fun MainFloatingActionButton(navController: NavHostController){
     FloatingActionButton(
         onClick = {
-            navController.navigate(Screen.Note.route)
+            navController.navigate("note/-1")
         },
         containerColor = orange10,
         content = {
@@ -274,7 +273,7 @@ fun MainPage(navController: NavHostController) {
 
             DivisorWithText()
 
-            MosaicNoteCard(allData)
+            MosaicNoteCard(allData,navController)
         }
     }
 }

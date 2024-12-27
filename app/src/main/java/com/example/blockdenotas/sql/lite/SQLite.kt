@@ -128,4 +128,24 @@ class SQLite(context: Context) : SQLiteOpenHelper(context,
         return deletedRows > 0
     }
 
+    fun updateData(
+        id: Int,
+        titulo: String,
+        contenido: String,
+        colorDeFondo: String,
+        tamanoDeTexto: Int
+    ): Boolean {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_TITULO, titulo)
+            put(COLUMN_CONTENIDO, contenido)
+            put(COLUMN_COLOR_DE_FONDO, colorDeFondo)
+            put(COLUMN_TAMANO_DE_TEXTO, tamanoDeTexto)
+        }
+
+        val rowsAffected = db.update(TABLE_NAME, values, "$COLUMN_ID = ?", arrayOf(id.toString()))
+        db.close()
+        return rowsAffected > 0 // Devuelve true si al menos una fila fue afectada
+    }
+
 }

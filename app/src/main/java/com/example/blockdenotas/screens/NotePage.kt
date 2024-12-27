@@ -38,14 +38,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.blockdenotas.navegation.Screen
 import com.example.blockdenotas.sql.lite.SQLite
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
-
+//pantalla 2
 var globalFontSize = 20
-var globalContent = ""
 
 @Composable
 fun DropDownMenuColors(backgroundColor: Color, onClick: () -> Unit, isColorSelected: Boolean) {
@@ -95,12 +95,13 @@ fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boo
 @Composable
 fun TopAppBarNote(
     onBackgroundColorChange: (Color) -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    title: String,
+    onTitleChange: (String) -> Unit,
+    onSave: () -> Unit
 ) {
 
     val db = SQLite(context = LocalContext.current)
-
-    var title by remember { mutableStateOf("") }
 
     var focus by remember { mutableStateOf(false) }
     var settingState by remember { mutableStateOf(false) }
@@ -117,7 +118,7 @@ fun TopAppBarNote(
         title = {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange =  onTitleChange ,
                 placeholder = {
                     if (!focus) {
                         Text(
@@ -145,12 +146,7 @@ fun TopAppBarNote(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    db.insertData(
-                        titulo = title,
-                        contenido = globalContent,
-                        colorDeFondo = backgroundColor,
-                        tamanoDeTexto = fontSize
-                    )
+                    onSave() // Llama a la función para guardar los datos
                     navController.popBackStack()
                 },
                 content = {
@@ -328,9 +324,7 @@ fun TopAppBarNote(
 }
 
 @Composable
-fun NoteBody(color: Color) {
-    var content by remember { mutableStateOf("") }
-
+fun NoteBody(content: String, onContentChange: (String) -> Unit) {
     Column(
         modifier = Modifier
             .padding(
@@ -342,11 +336,11 @@ fun NoteBody(color: Color) {
     ) {
         OutlinedTextField(
             value = content,
-            onValueChange = { content = it },
+            onValueChange = onContentChange,
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = if (color == orange10) Color.Black else Color.White,
+                focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
                 cursorColor = Color.White
             ),
@@ -357,30 +351,66 @@ fun NoteBody(color: Color) {
             )
         )
     }
-    globalContent = content
 }
 
 @Composable
-fun MainNote(navController: NavHostController) {
+fun MainNote(navController: NavHostController, noteId: Int?) {
+    val db = SQLite(context = LocalContext.current)
+    val noteData = remember { noteId?.let { db.getDataById(it) } }
+
     var backgroundColor by remember { mutableStateOf(black20) }
+    var title by remember { mutableStateOf(noteData?.get(SQLite.COLUMN_TITULO) as? String ?: "") }
+    var content by remember { mutableStateOf(noteData?.get(SQLite.COLUMN_CONTENIDO) as? String ?: "") }
+
+    val backgroundColor2 = when (backgroundColor) {
+        black20 -> "black"
+        green10 -> "green"
+        orange10 -> "orange"
+        blue10 -> "blue"
+        else -> "blue"
+    }
 
     Scaffold(
         topBar = {
             TopAppBarNote(
-                onBackgroundColorChange = { newColor ->
-                    backgroundColor = newColor
-                },
-                navController
+                onBackgroundColorChange = { newColor -> backgroundColor = newColor },
+                navController = navController,
+                title = title,
+                onTitleChange = { title = it },
+                onSave = {
+                    if (noteId == null) {
+                        // Insertar nueva nota
+                        db.insertData(
+                            titulo = title,
+                            contenido = content,
+                            colorDeFondo = backgroundColor2,
+                            tamanoDeTexto = globalFontSize
+                        )
+                    } else {
+                        // Actualizar nota existente
+                        db.updateData(
+                            id = noteId,
+                            titulo = title,
+                            contenido = content,
+                            colorDeFondo = backgroundColor2,
+                            tamanoDeTexto = globalFontSize
+                        )
+                    }
+
+                    // Solo navega hacia atrás si es posible
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Main.route)
+                    }
+                }
             )
         },
         containerColor = backgroundColor
-    ) {
-        innerPadding ->
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier.padding(innerPadding)
-        ){
-            NoteBody(backgroundColor)
+        ) {
+            NoteBody(content = content, onContentChange = { content = it })
         }
     }
 }
