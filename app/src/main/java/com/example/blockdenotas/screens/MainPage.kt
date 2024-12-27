@@ -3,10 +3,12 @@
 package com.example.blockdenotas.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -196,17 +199,33 @@ fun NoteCard(noteCardData: NoteCardData, navController: NavHostController){
 
 @Composable
 fun MosaicNoteCard(noteCards: List<NoteCardData>, navController: NavHostController) {
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
-        verticalItemSpacing = 10.dp,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(10.dp),
-        content = {
-            items(noteCards) { data ->
-                NoteCard(noteCardData = data, navController = navController)
-            }
+    if (noteCards.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No hay notas disponibles",
+                color = Color.White,
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
+            )
         }
-    )
+    } else {
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            verticalItemSpacing = 10.dp,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(10.dp),
+            content = {
+                items(noteCards) { data ->
+                    NoteCard(noteCardData = data, navController = navController)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -250,7 +269,12 @@ fun MainFloatingActionButton(navController: NavHostController){
 @Composable
 fun MainPage(navController: NavHostController) {
     val db = SQLite(context = LocalContext.current)
-    val allData = db.getAllData()
+    var allData by remember { mutableStateOf(emptyList<NoteCardData>()) }
+
+    // Actualiza la lista de notas cada vez que se entra en esta pantalla
+    LaunchedEffect(Unit) {
+        allData = db.getAllData()
+    }
 
     Scaffold(
         topBar = {
@@ -263,8 +287,7 @@ fun MainPage(navController: NavHostController) {
             MainFloatingActionButton(navController)
         },
         containerColor = black20
-    ) {
-        contentPadding ->
+    ) { contentPadding ->
 
         Column(
             modifier = Modifier.padding(contentPadding)
@@ -273,7 +296,7 @@ fun MainPage(navController: NavHostController) {
 
             DivisorWithText()
 
-            MosaicNoteCard(allData,navController)
+            MosaicNoteCard(allData, navController)
         }
     }
 }

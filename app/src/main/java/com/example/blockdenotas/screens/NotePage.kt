@@ -399,7 +399,7 @@ fun MainNote(navController: NavHostController, noteId: Int?) {
 
                     // Solo navega hacia atrás si es posible
                     if (!navController.popBackStack()) {
-                        navController.navigate(Screen.Main.route)
+                        navController.navigate(Screen.Main.route) // Navegar a la pantalla principal si no hay pantalla anterior
                     }
                 }
             )
