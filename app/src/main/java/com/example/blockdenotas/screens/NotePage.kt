@@ -147,7 +147,6 @@ fun TopAppBarNote(
             IconButton(
                 onClick = {
                     onSave() // Llama a la función para guardar los datos
-                    navController.popBackStack()
                 },
                 content = {
                     Icon(
@@ -324,7 +323,7 @@ fun TopAppBarNote(
 }
 
 @Composable
-fun NoteBody(content: String, onContentChange: (String) -> Unit) {
+fun NoteBody(content: String, onContentChange: (String) -> Unit, backgroundColor: String) {
     Column(
         modifier = Modifier
             .padding(
@@ -340,7 +339,7 @@ fun NoteBody(content: String, onContentChange: (String) -> Unit) {
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = Color.White,
+                focusedTextColor = if (backgroundColor == "black" || backgroundColor == "blue") Color.White else Color.Black,
                 unfocusedTextColor = Color.White,
                 cursorColor = Color.White
             ),
@@ -410,7 +409,11 @@ fun MainNote(navController: NavHostController, noteId: Int?) {
         Column(
             modifier = Modifier.padding(innerPadding)
         ) {
-            NoteBody(content = content, onContentChange = { content = it })
+            NoteBody(
+                content = content,
+                onContentChange = { content = it },
+                backgroundColor = backgroundColor2
+            )
         }
     }
 }
