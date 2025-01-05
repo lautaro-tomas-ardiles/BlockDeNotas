@@ -26,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,21 +34,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.blockdenotas.data.base.DataBase
+import com.example.blockdenotas.data.base.ViewModelNote
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
 
-var globalFontSize = 20
-
 @Composable
-fun DropDownMenuColors(backgroundColor: Color, onClick: () -> Unit, isColorSelected: Boolean) {
+fun DropDownMenuColors(
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    isColorSelected: Boolean
+) {
     DropdownMenuItem(
         onClick = {
-            onClick
+            onClick()
         },
         text = {
             Box(
@@ -64,7 +72,11 @@ fun DropDownMenuColors(backgroundColor: Color, onClick: () -> Unit, isColorSelec
 }
 
 @Composable
-fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boolean) {
+fun DropDownMenuFont(
+    fontSize: Int,
+    onClick: () -> Unit,
+    isFontSizeSelected: Boolean
+) {
     val label = when (fontSize) {
         15 -> "pequeña"
         20 -> "mediana"
@@ -73,7 +85,7 @@ fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boo
     }
 
     DropdownMenuItem(
-        onClick = { onClick },
+        onClick = { onClick() },
         text = {
             Text(
                 text = label
@@ -87,8 +99,12 @@ fun DropDownMenuFont(fontSize: Int, onClick: () -> Unit, isFontSizeSelected: Boo
 }
 
 @Composable
-fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
-    var title by remember { mutableStateOf("") }
+fun TopAppBarNote(noteViewModel: ViewModelNote) {
+
+    val db = DataBase(LocalContext.current)
+
+    val title = noteViewModel.title.observeAsState("")
+    val backgroundColor = noteViewModel.backgroundColor.observeAsState(initial = black20)
 
     var focus by remember { mutableStateOf(false) }
     var settingState by remember { mutableStateOf(false) }
@@ -97,14 +113,13 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
     var colorSelected by remember { mutableIntStateOf(1) }
 
     var fontState by remember { mutableStateOf(false) }
-    var fontSize by remember { mutableIntStateOf(20) }
     var fontSelected by remember { mutableIntStateOf(2) }
 
     TopAppBar(
         title = {
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
+                value = title.value,
+                onValueChange = { noteViewModel.updateTitle(it) },
                 placeholder = {
                     if (!focus) {
                         Text(
@@ -131,7 +146,14 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
         },
         navigationIcon = {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    db.insertData(
+                        title = title.value,
+                        content = noteViewModel.content.value!!,
+                        backgroundColor = backgroundColor.value.toString(),
+                        fontSize = noteViewModel.fontSize.value!!
+                    )
+                },
                 content = {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBack,
@@ -217,7 +239,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     backgroundColor = black20,
                     isColorSelected = colorSelected == 1,
                     onClick = {
-                        onBackgroundColorChange(black20)
+                        noteViewModel.updateBackgroundColor(black20)
                         colorSelected = 1
                         colorState = !colorState
                     }
@@ -227,7 +249,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     backgroundColor = green10,
                     isColorSelected = colorSelected == 2,
                     onClick = {
-                        onBackgroundColorChange(green10)
+                        noteViewModel.updateBackgroundColor(green10)
                         colorSelected = 2
                         colorState = !colorState
                     }
@@ -237,7 +259,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     backgroundColor = orange10,
                     isColorSelected = colorSelected == 3,
                     onClick = {
-                        onBackgroundColorChange(orange10)
+                        noteViewModel.updateBackgroundColor(orange10)
                         colorSelected = 3
                         colorState = !colorState
                     }
@@ -247,7 +269,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     backgroundColor = blue10,
                     isColorSelected = colorSelected == 4,
                     onClick = {
-                        onBackgroundColorChange(blue10)
+                        noteViewModel.updateBackgroundColor(blue10)
                         colorSelected = 4
                         colorState = !colorState
                     }
@@ -264,7 +286,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     fontSize = 15,
                     isFontSizeSelected = fontSelected == 1,
                     onClick = {
-                        fontSize = 15
+                        noteViewModel.updateFontSize(15)
                         fontSelected = 1
                         fontState = !fontState
                     }
@@ -274,7 +296,7 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     fontSize = 20,
                     isFontSizeSelected = fontSelected == 2,
                     onClick = {
-                        fontSize = 20
+                        noteViewModel.updateFontSize(20)
                         fontSelected = 2
                         fontState = !fontState
                     }
@@ -284,16 +306,19 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
                     fontSize = 25,
                     isFontSizeSelected = fontSelected == 3,
                     onClick = {
-                        fontSize = 25
+                        noteViewModel.updateFontSize(25)
                         fontSelected = 3
                         fontState = !fontState
                     }
                 )
-                globalFontSize = fontSize
             }
         },
         colors = TopAppBarColors(
-            containerColor = if (colorSelected == 2) blue10 else green10,
+            containerColor =
+            if (backgroundColor.value == green10)
+                blue10
+            else
+                green10,
             actionIconContentColor = black20,
             navigationIconContentColor = black20,
             titleContentColor = black20,
@@ -303,8 +328,9 @@ fun TopAppBarNote(onBackgroundColorChange: (Color) -> Unit) {
 }
 
 @Composable
-fun NoteBody(color: Color) {
-    var content by remember { mutableStateOf("") }
+fun NoteBody(noteViewModel: ViewModelNote) {
+    val content = noteViewModel.content.observeAsState("")
+    val backgroundColor = noteViewModel.backgroundColor.observeAsState()
 
     Column(
         modifier = Modifier
@@ -316,44 +342,48 @@ fun NoteBody(color: Color) {
             .fillMaxSize()
     ) {
         OutlinedTextField(
-            value = content,
-            onValueChange = { content = it },
+            value = content.value,
+            onValueChange = { noteViewModel.updateContent(it) },
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor = if (color == orange10) Color.Black else Color.White,
-                unfocusedTextColor = Color.White,
+                focusedTextColor =
+                if (backgroundColor.value == orange10 || backgroundColor.value == green10)
+                    Color.Black
+                else
+                    Color.White,
+                unfocusedTextColor =
+                if (backgroundColor.value == orange10 || backgroundColor.value == green10)
+                    Color.Black
+                else
+                    Color.White,
                 cursorColor = Color.White
             ),
             modifier = Modifier
                 .fillMaxSize(),
             textStyle = TextStyle(
-                fontSize = globalFontSize.sp
+                fontSize = noteViewModel.fontSize.value!!.sp
             )
         )
     }
 }
 
 @Composable
-fun MainNote() {
-    var backgroundColor by remember { mutableStateOf(black20) }
+fun MainNote(navController: NavController, noteViewModel: ViewModelNote = viewModel()) {
+    val backgroundColor = noteViewModel.backgroundColor.observeAsState()
 
     Scaffold(
         topBar = {
-            TopAppBarNote(
-                onBackgroundColorChange = { newColor ->
-                    backgroundColor = newColor
-                }
-            )
+            TopAppBarNote(noteViewModel)
         },
-        containerColor = backgroundColor
+        containerColor = backgroundColor.value!!
     ) {
         innerPadding ->
 
         Column(
             modifier = Modifier.padding(innerPadding)
         ){
-            NoteBody(backgroundColor)
+            NoteBody(noteViewModel)
         }
     }
 }
