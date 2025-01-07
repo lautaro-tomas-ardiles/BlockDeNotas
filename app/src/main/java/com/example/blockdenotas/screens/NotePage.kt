@@ -119,6 +119,13 @@ fun TopAppBarNote(
     var fontSelected by remember { mutableIntStateOf(2) }
     var fontSize by remember { mutableIntStateOf(data.fontSize) }
 
+    fontSelected = when (fontSize) {
+        15 -> 1
+        20 -> 2
+        25 -> 3
+        else -> 3
+    }
+
     TopAppBar(
         title = {
             OutlinedTextField(
