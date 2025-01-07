@@ -34,7 +34,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -175,7 +174,7 @@ fun NoteCard(
             Column(
                 modifier = Modifier
                     .padding(10.dp)
-                    .widthIn(max = ((screenWidth / 2) - 20.dp)),
+                    .widthIn(max = (screenWidth / 2) - 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 Text(

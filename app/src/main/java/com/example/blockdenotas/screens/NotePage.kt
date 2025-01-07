@@ -119,11 +119,18 @@ fun TopAppBarNote(
     var fontSelected by remember { mutableIntStateOf(2) }
     var fontSize by remember { mutableIntStateOf(data.fontSize) }
 
+    fontSelected = when (fontSize) {
+        15 -> 1
+        20 -> 2
+        25 -> 3
+        else -> 4
+    }
+
     TopAppBar(
         title = {
             OutlinedTextField(
                 value = title,
-                onValueChange =  onTitleChange ,
+                onValueChange = { title = it },
                 placeholder = {
                     if (!focus) {
                         Text(
@@ -151,9 +158,6 @@ fun TopAppBarNote(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    data.title = title
-                    data.fontSize = fontSize
-
                     when (id) {
                        -1 -> {
                            db.insertData(
@@ -312,8 +316,6 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 1,
                     onClick = {
                         fontSize = 15
-                        data.fontSize = 15
-                        fontSelected = 1
                         fontState = !fontState
                     }
                 )
@@ -323,8 +325,6 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 2,
                     onClick = {
                         fontSize = 20
-                        data.fontSize = 20
-                        fontSelected = 2
                         fontState = !fontState
                     }
                 )
@@ -334,8 +334,6 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 3,
                     onClick = {
                         fontSize = 25
-                        data.fontSize = 25
-                        fontSelected = 3
                         fontState = !fontState
                     }
                 )
@@ -370,10 +368,12 @@ fun NoteBody(data: DataNote,  backgroundColor: Color) {
             .fillMaxSize()
     ) {
         OutlinedTextField(
-            value = content, onValueChange = {
+            value = content,
+            onValueChange = {
                 content = it
                 data.content = it
-            }, colors = TextFieldDefaults.outlinedTextFieldColors(
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
                 focusedTextColor =
@@ -387,7 +387,10 @@ fun NoteBody(data: DataNote,  backgroundColor: Color) {
                 else
                     Color.White,
                 cursorColor = Color.White
-            ), modifier = Modifier.fillMaxSize(), textStyle = TextStyle(
+            ),
+            modifier = Modifier
+                .fillMaxSize(),
+            textStyle = TextStyle(
                 fontSize = data.fontSize.sp
             )
         )
@@ -441,7 +444,6 @@ fun MainNote(navController: NavController, id: Int) {
         Column(
             modifier = Modifier.padding(innerPadding)
         ){
-
             NoteBody(
                 data!!,
                 backgroundColor
