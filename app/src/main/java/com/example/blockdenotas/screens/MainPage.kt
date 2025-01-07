@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.blockdenotas.data.base.DataBase
 import com.example.blockdenotas.data.base.DataNote
+import com.example.blockdenotas.navegation.appScreen
 import com.example.blockdenotas.ui.theme.black10
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
@@ -133,15 +134,16 @@ fun SearchBar(){
                     focus = it.isFocused
                 }
         )
-        Spacer(modifier = Modifier.padding(10.dp))
 
-        DivisorWithText()
 
     }
 }
 
 @Composable
-fun NoteCard(noteData : DataNote){
+fun NoteCard(
+    noteData : DataNote,
+    navController: NavController
+){
 
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp.dp
@@ -159,7 +161,9 @@ fun NoteCard(noteData : DataNote){
         }
 
     Card(
-        onClick = { /*TODO*/ },
+        onClick = {
+            navController.navigate(appScreen.NotePage.route + "/${noteData.id}")
+        },
         colors = CardDefaults.cardColors(
             containerColor = cardColor
         ),
@@ -190,7 +194,10 @@ fun NoteCard(noteData : DataNote){
 }
 
 @Composable
-fun MosaicNoteCard(noteCards: List<DataNote>){
+fun MosaicNoteCard(
+    noteCards: List<DataNote>,
+    navController: NavController
+){
 
     if (noteCards.isEmpty()) {
         Box(
@@ -214,7 +221,10 @@ fun MosaicNoteCard(noteCards: List<DataNote>){
             contentPadding = PaddingValues(10.dp),
             content = {
                 items(noteCards) { data ->
-                    NoteCard(noteData = data)
+                    NoteCard(
+                        data,
+                        navController
+                    )
                 }
             }
         )
@@ -243,9 +253,11 @@ fun MainBottomAppBar(){
 }
 
 @Composable
-fun MainFloatingActionButton(){
+fun MainFloatingActionButton(navController: NavController){
     FloatingActionButton(
-        onClick = { /*TODO*/ },
+        onClick = {
+            navController.navigate(appScreen.NotePage.route)
+        },
         containerColor = orange10,
         content = {
             Icon(
@@ -259,23 +271,26 @@ fun MainFloatingActionButton(){
 
 @Composable
 fun MainPage(navController: NavController){
-    val db = DataBase(context = LocalContext.current)
-    var allData by remember { mutableStateOf(emptyList<DataNote>()) }
+    val db = DataBase(LocalContext.current)
+    val allData: List<DataNote> = db.getAllData()
 
-    // Actualiza la lista de notas cada vez que se entra en esta pantalla
-    LaunchedEffect(Unit) {
-        allData = db.getAllData()
-    }
+//    LaunchedEffect(Unit) {
+//        try {
+//            allData = db.getAllData()
+//        } catch (e: Exception) {
+//            e.printStackTrace() // O maneja el error de forma adecuada
+//        }
+//    }
 
     Scaffold(
         topBar = {
-            SearchBar()
+            //SearchBar()
         },
         bottomBar = {
-            MainBottomAppBar()
+            //MainBottomAppBar()
         },
         floatingActionButton = {
-            MainFloatingActionButton()
+            MainFloatingActionButton(navController)
         },
         containerColor = black20
     ) {
@@ -284,7 +299,11 @@ fun MainPage(navController: NavController){
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
-            MosaicNoteCard(allData)
+            Spacer(modifier = Modifier.padding(10.dp))
+
+            DivisorWithText()
+
+            MosaicNoteCard(allData, navController)
         }
     }
 }

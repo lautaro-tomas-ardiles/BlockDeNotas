@@ -45,17 +45,18 @@ class DataBase(context: Context) :
     }
 
     //insertar datos
-    fun insertData(title: String, content: String, backgroundColor: String, fontSize: Int): Long {
+    fun insertData(dataNote: DataNote): Long {
         val db = writableDatabase
 
         val values = ContentValues().apply {
-            put(COLUMN_TITLES, title)
-            put(COLUMN_CONTENT, content)
-            put(COLUMN_BACKGROUND_COLOR, backgroundColor)
-            put(COLUMN_FONT_SIZE, fontSize)
+            put(COLUMN_TITLES, dataNote.title)
+            put(COLUMN_CONTENT, dataNote.content)
+            put(COLUMN_BACKGROUND_COLOR, dataNote.backgroundColor)
+            put(COLUMN_FONT_SIZE, dataNote.fontSize)
         }
 
         return db.insert(TABLE_NAME, null, values)
+        db.close()
     }
 
     //obtener datos
@@ -76,25 +77,31 @@ class DataBase(context: Context) :
         if (cursor.moveToFirst()) {
             do {
                 val note = DataNote(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_ID")),
-                    title = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_TITLES")),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_CONTENT")),
-                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_BACKGROUND_COLOR")),
-                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_FONT_SIZE"))
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLES)),
+                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
+                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BACKGROUND_COLOR)),
+                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_FONT_SIZE))
                 )
                 data.add(note)
 
             }while (cursor.moveToNext())
         }
-
         cursor.close()
+        db.close()
         return data
     }
 
     //obtener datos por id
-    fun getDataById(id: Int): List<DataNote> {
+    fun getDataById(id: Int): DataNote {
         val db = readableDatabase
-        val data = mutableListOf<DataNote>()
+        var data = DataNote(
+            id = 0,
+            title = "",
+            content = "",
+            backgroundColor = "",
+            fontSize = 0
+        )
 
         val selection = "$COLUMN_ID = ?"
         val selectionArgs = arrayOf(id.toString())
@@ -112,17 +119,18 @@ class DataBase(context: Context) :
         if (cursor.moveToFirst()) {
             do {
                 val note = DataNote(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_ID")),
-                    title = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_TITLES")),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_CONTENT")),
-                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_BACKGROUND_COLOR")),
-                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_FONT_SIZE"))
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLES)),
+                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
+                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BACKGROUND_COLOR)),
+                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_FONT_SIZE))
                 )
-                data.add(note)
+                data = note
 
             }while (cursor.moveToNext())
         }
         cursor.close()
+        db.close()
         return data
     }
 
@@ -147,17 +155,17 @@ class DataBase(context: Context) :
         if (cursor.moveToFirst()){
             do {
                 val note = DataNote(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_ID")),
-                    title = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_TITLES")),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_CONTENT")),
-                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow("COLUMN_BACKGROUND_COLOR")),
-                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow("COLUMN_FONT_SIZE"))
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLES)),
+                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
+                    backgroundColor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BACKGROUND_COLOR)),
+                    fontSize = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_FONT_SIZE))
                 )
                 data.add(note)
             }while (cursor.moveToNext())
         }
-
         cursor.close()
+        db.close()
         return data
     }
 
@@ -177,6 +185,7 @@ class DataBase(context: Context) :
         val selectionArgs = arrayOf(id.toString())
 
         // Ejecutar la consulta de actualización
-        db.update("notas", values, selection, selectionArgs)
+        db.update(TABLE_NAME, values, selection, selectionArgs)
+        db.close()
     }
 }

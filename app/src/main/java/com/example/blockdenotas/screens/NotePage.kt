@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.blockdenotas.data.base.DataBase
+import com.example.blockdenotas.data.base.DataNote
 import com.example.blockdenotas.data.base.ViewModelNote
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
@@ -99,12 +100,22 @@ fun DropDownMenuFont(
 }
 
 @Composable
-fun TopAppBarNote(noteViewModel: ViewModelNote) {
+fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
 
     val db = DataBase(LocalContext.current)
 
-    val title = noteViewModel.title.observeAsState("")
-    val backgroundColor = noteViewModel.backgroundColor.observeAsState(initial = black20)
+    var title by remember { mutableStateOf(data.title) }
+
+    val backgroundColorAsString = data.backgroundColor
+
+    var backgroundColor =
+        when (backgroundColorAsString) {
+            "blue" -> blue10
+            "black" -> black20
+            "green" -> green10
+            "orange" -> orange10
+            else -> black20
+        }
 
     var focus by remember { mutableStateOf(false) }
     var settingState by remember { mutableStateOf(false) }
@@ -114,12 +125,13 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
 
     var fontState by remember { mutableStateOf(false) }
     var fontSelected by remember { mutableIntStateOf(2) }
+    var fontSize by remember { mutableIntStateOf(data.fontSize) }
 
     TopAppBar(
         title = {
             OutlinedTextField(
-                value = title.value,
-                onValueChange = { noteViewModel.updateTitle(it) },
+                value = title,
+                onValueChange = { title = it },
                 placeholder = {
                     if (!focus) {
                         Text(
@@ -147,12 +159,27 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
         navigationIcon = {
             IconButton(
                 onClick = {
-                    db.insertData(
-                        title = title.value,
-                        content = noteViewModel.content.value!!,
-                        backgroundColor = backgroundColor.value.toString(),
-                        fontSize = noteViewModel.fontSize.value!!
-                    )
+                    data.title = title
+                    data.backgroundColor = backgroundColorAsString
+                    data.fontSize = fontSize
+
+                    when (id) {
+                       -1 -> {
+                           db.insertData(data)
+                           navController.popBackStack()
+                       }
+                        else -> {
+                            db.updateData(
+                                id,
+                                title,
+                                data.content,
+                                backgroundColorAsString,
+                                fontSize
+                            )
+                            navController.popBackStack()
+                        }
+                    }
+
                 },
                 content = {
                     Icon(
@@ -239,7 +266,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     backgroundColor = black20,
                     isColorSelected = colorSelected == 1,
                     onClick = {
-                        noteViewModel.updateBackgroundColor(black20)
+                        backgroundColor = black20
+                        data.backgroundColor = "black"
                         colorSelected = 1
                         colorState = !colorState
                     }
@@ -249,7 +277,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     backgroundColor = green10,
                     isColorSelected = colorSelected == 2,
                     onClick = {
-                        noteViewModel.updateBackgroundColor(green10)
+                        backgroundColor = green10
+                        data.backgroundColor = "green"
                         colorSelected = 2
                         colorState = !colorState
                     }
@@ -259,7 +288,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     backgroundColor = orange10,
                     isColorSelected = colorSelected == 3,
                     onClick = {
-                        noteViewModel.updateBackgroundColor(orange10)
+                        backgroundColor = orange10
+                        data.backgroundColor = "orange"
                         colorSelected = 3
                         colorState = !colorState
                     }
@@ -269,7 +299,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     backgroundColor = blue10,
                     isColorSelected = colorSelected == 4,
                     onClick = {
-                        noteViewModel.updateBackgroundColor(blue10)
+                        backgroundColor = blue10
+                        data.backgroundColor = "blue"
                         colorSelected = 4
                         colorState = !colorState
                     }
@@ -286,7 +317,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     fontSize = 15,
                     isFontSizeSelected = fontSelected == 1,
                     onClick = {
-                        noteViewModel.updateFontSize(15)
+                        fontSize = 15
+                        data.fontSize = 15
                         fontSelected = 1
                         fontState = !fontState
                     }
@@ -296,7 +328,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     fontSize = 20,
                     isFontSizeSelected = fontSelected == 2,
                     onClick = {
-                        noteViewModel.updateFontSize(20)
+                        fontSize = 20
+                        data.fontSize = 20
                         fontSelected = 2
                         fontState = !fontState
                     }
@@ -306,7 +339,8 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
                     fontSize = 25,
                     isFontSizeSelected = fontSelected == 3,
                     onClick = {
-                        noteViewModel.updateFontSize(25)
+                        fontSize = 25
+                        data.fontSize = 25
                         fontSelected = 3
                         fontState = !fontState
                     }
@@ -315,7 +349,7 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
         },
         colors = TopAppBarColors(
             containerColor =
-            if (backgroundColor.value == green10)
+            if (backgroundColor == green10)
                 blue10
             else
                 green10,
@@ -328,9 +362,18 @@ fun TopAppBarNote(noteViewModel: ViewModelNote) {
 }
 
 @Composable
-fun NoteBody(noteViewModel: ViewModelNote) {
-    val content = noteViewModel.content.observeAsState("")
-    val backgroundColor = noteViewModel.backgroundColor.observeAsState()
+fun NoteBody(data: DataNote) {
+    var content by remember { mutableStateOf(data.content) }
+    val backgroundColorAsString = data.backgroundColor
+
+    val backgroundColor =
+        when (backgroundColorAsString) {
+            "blue" -> blue10
+            "black" -> black20
+            "green" -> green10
+            "orange" -> orange10
+            else -> black20
+        }
 
     Column(
         modifier = Modifier
@@ -342,18 +385,21 @@ fun NoteBody(noteViewModel: ViewModelNote) {
             .fillMaxSize()
     ) {
         OutlinedTextField(
-            value = content.value,
-            onValueChange = { noteViewModel.updateContent(it) },
+            value = content,
+            onValueChange = {
+                content = it
+                data.content = it
+            },
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
                 focusedTextColor =
-                if (backgroundColor.value == orange10 || backgroundColor.value == green10)
+                if (backgroundColor == orange10 || backgroundColor == green10)
                     Color.Black
                 else
                     Color.White,
                 unfocusedTextColor =
-                if (backgroundColor.value == orange10 || backgroundColor.value == green10)
+                if (backgroundColor == orange10 || backgroundColor == green10)
                     Color.Black
                 else
                     Color.White,
@@ -362,28 +408,45 @@ fun NoteBody(noteViewModel: ViewModelNote) {
             modifier = Modifier
                 .fillMaxSize(),
             textStyle = TextStyle(
-                fontSize = noteViewModel.fontSize.value!!.sp
+                fontSize = data.fontSize.sp
             )
         )
     }
 }
 
 @Composable
-fun MainNote(navController: NavController, noteViewModel: ViewModelNote = viewModel()) {
-    val backgroundColor = noteViewModel.backgroundColor.observeAsState()
+fun MainNote(navController: NavController, id: Int) {
 
+    val db = DataBase(LocalContext.current)
+
+    val data: DataNote =
+        when (id) {
+            -1  -> DataNote(0,"","","",20)
+            else -> db.getDataById(id)
+        }
+
+    val backgroundColorAsString = data.backgroundColor
+
+    val backgroundColor =
+        when (backgroundColorAsString) {
+            "blue" -> blue10
+            "black" -> black20
+            "green" -> green10
+            "orange" -> orange10
+            else -> black20
+        }
     Scaffold(
         topBar = {
-            TopAppBarNote(noteViewModel)
+            TopAppBarNote(data,id,navController)
         },
-        containerColor = backgroundColor.value!!
+        containerColor = backgroundColor
     ) {
         innerPadding ->
 
         Column(
             modifier = Modifier.padding(innerPadding)
         ){
-            NoteBody(noteViewModel)
+            NoteBody(data)
         }
     }
 }
