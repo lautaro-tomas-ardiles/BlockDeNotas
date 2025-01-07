@@ -101,7 +101,7 @@ fun TopAppBarNote(
     data: DataNote,
     id: Int,
     navController: NavController,
-     onColorChange: (Color) -> Unit
+    onColorChange: (Color) -> Unit
 ) {
 
     val db = DataBase(LocalContext.current)
