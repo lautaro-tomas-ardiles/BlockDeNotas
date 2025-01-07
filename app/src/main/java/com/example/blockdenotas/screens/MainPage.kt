@@ -162,7 +162,7 @@ fun NoteCard(
 
     Card(
         onClick = {
-            navController.navigate(appScreen.NotePage.route + "/${noteData.id}")
+            navController.navigate(appScreen.NotePage.createRoute(noteData.id))
         },
         colors = CardDefaults.cardColors(
             containerColor = cardColor
@@ -256,7 +256,7 @@ fun MainBottomAppBar(){
 fun MainFloatingActionButton(navController: NavController){
     FloatingActionButton(
         onClick = {
-            navController.navigate(appScreen.NotePage.route)
+            navController.navigate(appScreen.NotePage.createRoute(-1))
         },
         containerColor = orange10,
         content = {
@@ -273,14 +273,6 @@ fun MainFloatingActionButton(navController: NavController){
 fun MainPage(navController: NavController){
     val db = DataBase(LocalContext.current)
     val allData: List<DataNote> = db.getAllData()
-
-//    LaunchedEffect(Unit) {
-//        try {
-//            allData = db.getAllData()
-//        } catch (e: Exception) {
-//            e.printStackTrace() // O maneja el error de forma adecuada
-//        }
-//    }
 
     Scaffold(
         topBar = {
@@ -303,7 +295,11 @@ fun MainPage(navController: NavController){
 
             DivisorWithText()
 
-            MosaicNoteCard(allData, navController)
+            MosaicNoteCard(
+                allData,
+                navController
+            )
         }
     }
 }
+

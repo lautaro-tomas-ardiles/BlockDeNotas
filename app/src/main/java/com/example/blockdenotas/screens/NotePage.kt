@@ -26,7 +26,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,11 +37,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.blockdenotas.data.base.DataBase
 import com.example.blockdenotas.data.base.DataNote
-import com.example.blockdenotas.data.base.ViewModelNote
 import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
@@ -100,28 +97,23 @@ fun DropDownMenuFont(
 }
 
 @Composable
-fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
+fun TopAppBarNote(
+    data: DataNote,
+    id: Int,
+    navController: NavController,
+     onColorChange: (Color) -> Unit
+) {
 
     val db = DataBase(LocalContext.current)
 
     var title by remember { mutableStateOf(data.title) }
-
-    val backgroundColorAsString = data.backgroundColor
-
-    var backgroundColor =
-        when (backgroundColorAsString) {
-            "blue" -> blue10
-            "black" -> black20
-            "green" -> green10
-            "orange" -> orange10
-            else -> black20
-        }
 
     var focus by remember { mutableStateOf(false) }
     var settingState by remember { mutableStateOf(false) }
 
     var colorState by remember { mutableStateOf(false) }
     var colorSelected by remember { mutableIntStateOf(1) }
+    var color by remember { mutableStateOf("") }
 
     var fontState by remember { mutableStateOf(false) }
     var fontSelected by remember { mutableIntStateOf(2) }
@@ -160,12 +152,16 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
             IconButton(
                 onClick = {
                     data.title = title
-                    data.backgroundColor = backgroundColorAsString
                     data.fontSize = fontSize
 
                     when (id) {
                        -1 -> {
-                           db.insertData(data)
+                           db.insertData(
+                               title,
+                               data.content,
+                               color,
+                               fontSize,
+                           )
                            navController.popBackStack()
                        }
                         else -> {
@@ -173,13 +169,12 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
                                 id,
                                 title,
                                 data.content,
-                                backgroundColorAsString,
+                                color,
                                 fontSize
                             )
                             navController.popBackStack()
                         }
                     }
-
                 },
                 content = {
                     Icon(
@@ -266,8 +261,8 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
                     backgroundColor = black20,
                     isColorSelected = colorSelected == 1,
                     onClick = {
-                        backgroundColor = black20
-                        data.backgroundColor = "black"
+                        onColorChange(black20)
+                        color = "black"
                         colorSelected = 1
                         colorState = !colorState
                     }
@@ -277,8 +272,8 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
                     backgroundColor = green10,
                     isColorSelected = colorSelected == 2,
                     onClick = {
-                        backgroundColor = green10
-                        data.backgroundColor = "green"
+                        onColorChange(green10)
+                        color = "green"
                         colorSelected = 2
                         colorState = !colorState
                     }
@@ -288,8 +283,8 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
                     backgroundColor = orange10,
                     isColorSelected = colorSelected == 3,
                     onClick = {
-                        backgroundColor = orange10
-                        data.backgroundColor = "orange"
+                        onColorChange(orange10)
+                        color = "orange"
                         colorSelected = 3
                         colorState = !colorState
                     }
@@ -299,8 +294,8 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
                     backgroundColor = blue10,
                     isColorSelected = colorSelected == 4,
                     onClick = {
-                        backgroundColor = blue10
-                        data.backgroundColor = "blue"
+                        onColorChange(blue10)
+                        color = "blue"
                         colorSelected = 4
                         colorState = !colorState
                     }
@@ -349,7 +344,7 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
         },
         colors = TopAppBarColors(
             containerColor =
-            if (backgroundColor == green10)
+            if (colorSelected == 2)
                 blue10
             else
                 green10,
@@ -362,18 +357,9 @@ fun TopAppBarNote(data: DataNote, id: Int, navController: NavController) {
 }
 
 @Composable
-fun NoteBody(data: DataNote) {
-    var content by remember { mutableStateOf(data.content) }
-    val backgroundColorAsString = data.backgroundColor
+fun NoteBody(data: DataNote,  backgroundColor: Color) {
 
-    val backgroundColor =
-        when (backgroundColorAsString) {
-            "blue" -> blue10
-            "black" -> black20
-            "green" -> green10
-            "orange" -> orange10
-            else -> black20
-        }
+    var content by remember { mutableStateOf(data.content) }
 
     Column(
         modifier = Modifier
@@ -385,12 +371,10 @@ fun NoteBody(data: DataNote) {
             .fillMaxSize()
     ) {
         OutlinedTextField(
-            value = content,
-            onValueChange = {
+            value = content, onValueChange = {
                 content = it
                 data.content = it
-            },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            }, colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
                 focusedTextColor =
@@ -404,10 +388,7 @@ fun NoteBody(data: DataNote) {
                 else
                     Color.White,
                 cursorColor = Color.White
-            ),
-            modifier = Modifier
-                .fillMaxSize(),
-            textStyle = TextStyle(
+            ), modifier = Modifier.fillMaxSize(), textStyle = TextStyle(
                 fontSize = data.fontSize.sp
             )
         )
@@ -418,26 +399,42 @@ fun NoteBody(data: DataNote) {
 fun MainNote(navController: NavController, id: Int) {
 
     val db = DataBase(LocalContext.current)
+    var data by remember { mutableStateOf<DataNote?>(null) }
 
-    val data: DataNote =
-        when (id) {
-            -1  -> DataNote(0,"","","",20)
-            else -> db.getDataById(id)
+    data = when (id) {
+        -1 -> {
+            DataNote(
+                0,
+                "",
+                "",
+                "black",
+                20
+            )
         }
+        else -> db.getDataById(id)
+    }
 
-    val backgroundColorAsString = data.backgroundColor
+    var backgroundColor by remember {
+        mutableStateOf(
+            when (data!!.backgroundColor) {
+                "blue" -> blue10
+                "black" -> black20
+                "green" -> green10
+                "orange" -> orange10
+                else -> black20
+            }
+        )
+    }
 
-    val backgroundColor =
-        when (backgroundColorAsString) {
-            "blue" -> blue10
-            "black" -> black20
-            "green" -> green10
-            "orange" -> orange10
-            else -> black20
-        }
     Scaffold(
         topBar = {
-            TopAppBarNote(data,id,navController)
+            TopAppBarNote(
+                data!!,
+                id,
+                navController
+            ) {
+                color -> backgroundColor = color
+            }
         },
         containerColor = backgroundColor
     ) {
@@ -446,7 +443,11 @@ fun MainNote(navController: NavController, id: Int) {
         Column(
             modifier = Modifier.padding(innerPadding)
         ){
-            NoteBody(data)
+
+            NoteBody(
+                data!!,
+                backgroundColor
+            )
         }
     }
 }

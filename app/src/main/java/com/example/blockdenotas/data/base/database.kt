@@ -45,17 +45,19 @@ class DataBase(context: Context) :
     }
 
     //insertar datos
-    fun insertData(dataNote: DataNote): Long {
+    fun insertData(title: String, content: String, backgroundColor: String, fontSize: Int){
         val db = writableDatabase
 
         val values = ContentValues().apply {
-            put(COLUMN_TITLES, dataNote.title)
-            put(COLUMN_CONTENT, dataNote.content)
-            put(COLUMN_BACKGROUND_COLOR, dataNote.backgroundColor)
-            put(COLUMN_FONT_SIZE, dataNote.fontSize)
+            put(COLUMN_TITLES, title)
+            put(COLUMN_CONTENT, content)
+            put(COLUMN_BACKGROUND_COLOR, backgroundColor)
+            put(COLUMN_FONT_SIZE, fontSize)
         }
 
-        return db.insert(TABLE_NAME, null, values)
+        db.insert(TABLE_NAME, null, values)
+
+        //return db.insert(TABLE_NAME, null, values)
         db.close()
     }
 

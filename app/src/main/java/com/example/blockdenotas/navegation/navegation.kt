@@ -1,5 +1,6 @@
 package com.example.blockdenotas.navegation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,17 +13,20 @@ import com.example.blockdenotas.screens.MainPage
 @Composable
 fun AppNavegation(){
     val navController = rememberNavController()
-    NavHost(navController = navController , startDestination = appScreen.MainPage){
-        composable(route = appScreen.MainPage.route) {
+    NavHost(navController = navController, startDestination = "main_page") {
+        composable("main_page") {
             MainPage(navController)
         }
         composable(
-            route = appScreen.NotePage.route,
+            route = "note_page/{noteId}",
             arguments = listOf(navArgument("noteId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getInt("noteId") ?: -1
-
-            MainNote(navController, id = id)
+            val noteId = backStackEntry.arguments?.getInt("noteId")
+            // Your note details composable, passing noteId
+            if (noteId != null) {
+                MainNote(navController, noteId)
+            }
         }
     }
+
 }
