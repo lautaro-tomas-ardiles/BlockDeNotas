@@ -123,7 +123,7 @@ fun TopAppBarNote(
         title = {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange =  onTitleChange ,
                 placeholder = {
                     if (!focus) {
                         Text(
@@ -278,7 +278,6 @@ fun TopAppBarNote(
                         colorState = !colorState
                     }
                 )
-
                 DropDownMenuColors(
                     backgroundColor = orange10,
                     isColorSelected = colorSelected == 3,
@@ -437,8 +436,7 @@ fun MainNote(navController: NavController, id: Int) {
             }
         },
         containerColor = backgroundColor
-    ) {
-        innerPadding ->
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier.padding(innerPadding)

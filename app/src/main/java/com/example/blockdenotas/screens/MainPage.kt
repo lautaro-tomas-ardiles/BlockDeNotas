@@ -104,7 +104,10 @@ fun SearchBar(){
             onValueChange = { busqueda = it },
             placeholder = {
                 if (!focus) {
-                    Text("busqueda de notas")
+                    Text(
+                        "busqueda de notas",
+                        color = black10
+                    )
                 }
             },
             shape = RoundedCornerShape(100),
@@ -114,7 +117,10 @@ fun SearchBar(){
                 unfocusedBorderColor = Color.Transparent,
                 cursorColor = black10,
                 focusedTrailingIconColor = black10,
-                unfocusedTrailingIconColor = black10
+                unfocusedTrailingIconColor = black10,
+                disabledTextColor = black10,
+                focusedTextColor = black10,
+                unfocusedTextColor = black10
             ),
             trailingIcon = {
                 IconButton(
@@ -134,8 +140,6 @@ fun SearchBar(){
                     focus = it.isFocused
                 }
         )
-
-
     }
 }
 
@@ -144,7 +148,7 @@ fun NoteCard(
     noteData : DataNote,
     navController: NavController
 ){
-
+  
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp.dp
 
@@ -198,7 +202,6 @@ fun MosaicNoteCard(
     noteCards: List<DataNote>,
     navController: NavController
 ){
-
     if (noteCards.isEmpty()) {
         Box(
             modifier = Modifier
@@ -285,8 +288,7 @@ fun MainPage(navController: NavController){
             MainFloatingActionButton(navController)
         },
         containerColor = black20
-    ) {
-        contentPadding ->
+    ) { contentPadding ->
 
         Column(
             modifier = Modifier.padding(contentPadding)
