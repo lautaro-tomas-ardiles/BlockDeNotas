@@ -316,7 +316,7 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 1,
                     onClick = {
                         fontSize = 15
-                        data.fontSize = fontSize
+                        data.fontSize = fontSize//
                         fontSelected = 1
                         fontState = !fontState
                     }
@@ -327,7 +327,7 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 2,
                     onClick = {
                         fontSize = 20
-                        data.fontSize = fontSize
+                        data.fontSize = fontSize//
                         fontSelected = 2
                         fontState = !fontState
                     }
@@ -338,7 +338,7 @@ fun TopAppBarNote(
                     isFontSizeSelected = fontSelected == 3,
                     onClick = {
                         fontSize = 25
-                        data.fontSize = fontSize
+                        data.fontSize = fontSize//
                         fontSelected = 3
                         fontState = !fontState
                     }
