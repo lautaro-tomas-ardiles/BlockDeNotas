@@ -103,39 +103,54 @@ fun TopAppBarNote(
     navController: NavController,
     onColorChange: (Color) -> Unit
 ) {
-
     val db = DataBase(LocalContext.current)
 
     var title by remember { mutableStateOf(data.title) }
-
     var focus by remember { mutableStateOf(false) }
+
     var settingState by remember { mutableStateOf(false) }
 
     var colorState by remember { mutableStateOf(false) }
     var colorSelected by remember { mutableIntStateOf(1) }
-    var color by remember { mutableStateOf("") }
 
     var fontState by remember { mutableStateOf(false) }
     var fontSelected by remember { mutableIntStateOf(2) }
-    var fontSize by remember { mutableIntStateOf(data.fontSize) }
 
-    fontSelected = when (fontSize) {
+    fontSelected = when (data.fontSize) {
         15 -> 1
         20 -> 2
         25 -> 3
         else -> 4
     }
 
+    colorSelected = when (data.backgroundColor){
+        "black" -> 1
+        "green" -> 2
+        "orange" -> 3
+        "blue" -> 4
+        else -> 1
+    }
+
+    val containerColor =
+        if (colorSelected == 2) {
+            blue10
+        } else {
+            green10
+        }
+
     TopAppBar(
         title = {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+                    data.title = it
+                },
                 placeholder = {
                     if (!focus) {
                         Text(
                             text = "Escriba un titulo...",
-                            fontSize = 20.sp
+                            fontSize = 18.sp
                         )
                     }
                 },
@@ -163,8 +178,8 @@ fun TopAppBarNote(
                            db.insertData(
                                title,
                                data.content,
-                               color,
-                               fontSize,
+                               data.backgroundColor,
+                               data.fontSize,
                            )
                            navController.popBackStack()
                        }
@@ -173,8 +188,8 @@ fun TopAppBarNote(
                                 id,
                                 title,
                                 data.content,
-                                color,
-                                fontSize
+                                data.backgroundColor,
+                                data.fontSize
                             )
                             navController.popBackStack()
                         }
@@ -260,13 +275,12 @@ fun TopAppBarNote(
                 onDismissRequest = { colorState = !colorState }
                 //colores de fondo
             ) {
-
                 DropDownMenuColors(
                     backgroundColor = black20,
                     isColorSelected = colorSelected == 1,
                     onClick = {
                         onColorChange(black20)
-                        color = "black"
+                        data.backgroundColor = "black"
                         colorSelected = 1
                         colorState = !colorState
                     }
@@ -277,7 +291,7 @@ fun TopAppBarNote(
                     isColorSelected = colorSelected == 2,
                     onClick = {
                         onColorChange(green10)
-                        color = "green"
+                        data.backgroundColor = "green"
                         colorSelected = 2
                         colorState = !colorState
                     }
@@ -287,7 +301,7 @@ fun TopAppBarNote(
                     isColorSelected = colorSelected == 3,
                     onClick = {
                         onColorChange(orange10)
-                        color = "orange"
+                        data.backgroundColor = "orange"
                         colorSelected = 3
                         colorState = !colorState
                     }
@@ -298,7 +312,7 @@ fun TopAppBarNote(
                     isColorSelected = colorSelected == 4,
                     onClick = {
                         onColorChange(blue10)
-                        color = "blue"
+                        data.backgroundColor = "blue"
                         colorSelected = 4
                         colorState = !colorState
                     }
@@ -315,8 +329,7 @@ fun TopAppBarNote(
                     fontSize = 15,
                     isFontSizeSelected = fontSelected == 1,
                     onClick = {
-                        fontSize = 15
-                        data.fontSize = fontSize//
+                        data.fontSize = 15//
                         fontSelected = 1
                         fontState = !fontState
                     }
@@ -326,8 +339,7 @@ fun TopAppBarNote(
                     fontSize = 20,
                     isFontSizeSelected = fontSelected == 2,
                     onClick = {
-                        fontSize = 20
-                        data.fontSize = fontSize//
+                        data.fontSize = 20//
                         fontSelected = 2
                         fontState = !fontState
                     }
@@ -337,8 +349,7 @@ fun TopAppBarNote(
                     fontSize = 25,
                     isFontSizeSelected = fontSelected == 3,
                     onClick = {
-                        fontSize = 25
-                        data.fontSize = fontSize//
+                        data.fontSize = 25//
                         fontSelected = 3
                         fontState = !fontState
                     }
@@ -346,11 +357,7 @@ fun TopAppBarNote(
             }
         },
         colors = TopAppBarColors(
-            containerColor =
-            if (colorSelected == 2)
-                blue10
-            else
-                green10,
+            containerColor = containerColor,
             actionIconContentColor = black20,
             navigationIconContentColor = black20,
             titleContentColor = black20,
@@ -362,7 +369,19 @@ fun TopAppBarNote(
 @Composable
 fun NoteBody(data: DataNote,  backgroundColor: Color) {
 
-    var content by remember { mutableStateOf(data.content) }
+    var content by remember {
+        mutableStateOf(
+            data.content
+        )
+    }
+
+    val textAndCursorColor =
+        if (backgroundColor == orange10 || backgroundColor == green10) {
+            Color.Black
+        }
+        else{
+            Color.White
+        }
 
     Column(
         modifier = Modifier
@@ -376,23 +395,15 @@ fun NoteBody(data: DataNote,  backgroundColor: Color) {
         OutlinedTextField(
             value = content,
             onValueChange = {
-                content = it
                 data.content = it
+                content = it
             },
             colors = TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
-                focusedTextColor =
-                if (backgroundColor == orange10 || backgroundColor == green10)
-                    Color.Black
-                else
-                    Color.White,
-                unfocusedTextColor =
-                if (backgroundColor == orange10 || backgroundColor == green10)
-                    Color.Black
-                else
-                    Color.White,
-                cursorColor = Color.White
+                focusedTextColor = textAndCursorColor,
+                unfocusedTextColor = textAndCursorColor,
+                cursorColor = textAndCursorColor
             ),
             modifier = Modifier
                 .fillMaxSize(),
@@ -407,24 +418,26 @@ fun NoteBody(data: DataNote,  backgroundColor: Color) {
 fun MainNote(navController: NavController, id: Int) {
 
     val db = DataBase(LocalContext.current)
-    var data by remember { mutableStateOf<DataNote?>(null) }
-
-    data = when (id) {
-        -1 -> {
-            DataNote(
-                0,
-                "",
-                "",
-                "black",
-                20
-            )
-        }
-        else -> db.getDataById(id)
+    val data by remember {
+        mutableStateOf(
+            when (id) {
+                -1 -> {
+                    DataNote(
+                        0,
+                        "",
+                        "",
+                        "black",
+                        20
+                    )
+                }
+                else -> db.getDataById(id)
+            }
+        )
     }
 
     var backgroundColor by remember {
         mutableStateOf(
-            when (data!!.backgroundColor) {
+            when (data.backgroundColor) {
                 "blue" -> blue10
                 "black" -> black20
                 "green" -> green10
@@ -437,7 +450,7 @@ fun MainNote(navController: NavController, id: Int) {
     Scaffold(
         topBar = {
             TopAppBarNote(
-                data!!,
+                data,
                 id,
                 navController
             ) {
@@ -451,7 +464,7 @@ fun MainNote(navController: NavController, id: Int) {
             modifier = Modifier.padding(innerPadding)
         ){
             NoteBody(
-                data!!,
+                data,
                 backgroundColor
             )
         }

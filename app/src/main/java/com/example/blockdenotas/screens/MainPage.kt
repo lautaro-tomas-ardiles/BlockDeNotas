@@ -2,6 +2,9 @@
 
 package com.example.blockdenotas.screens
 
+import android.util.MutableBoolean
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,12 +38,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +61,7 @@ import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
+import com.example.blockdenotas.ui.theme.red10
 
 @Composable
 fun DivisorWithText() {
@@ -144,28 +150,60 @@ fun SearchBar(){
 
 @Composable
 fun NoteCard(
-    noteData : DataNote,
-    navController: NavController
-){
-  
+    noteData: DataNote,
+    navController: NavController,
+    deleteState: Boolean,
+    onDelete: (Int) -> Unit
+) {
     val config = LocalConfiguration.current
     val screenWidth = config.screenWidthDp.dp
 
+    val db = DataBase(LocalContext.current)
+
     val cardColor =
         when (noteData.backgroundColor) {
-
             "blue" -> blue10
-
             "green" -> green10
-
             "orange" -> orange10
-
             else -> blue10
+        }
+
+    val colorText =
+        when (cardColor) {
+            orange10 -> Color.Black
+            else -> Color.White
+        }
+
+    val borderColor =
+        if (deleteState) {
+            val gradientColors = when (cardColor) {
+                blue10 -> listOf(Color.Yellow, Color.Red)
+                green10 -> listOf(Color.Cyan, Color.Yellow)
+                orange10 -> listOf(Color.Cyan, Color.Blue)
+                else -> listOf(Color.Gray, Color.DarkGray)
+            }
+
+            BorderStroke(
+                width = 5.dp,
+                brush = Brush.horizontalGradient(gradientColors)
+            )
+        } else {
+            BorderStroke(
+                width = 0.dp,
+                color = Color.Transparent
+            )
         }
 
     Card(
         onClick = {
-            navController.navigate(appScreen.NotePage.createRoute(noteData.id))
+            if (deleteState) {
+                db.deleteById(noteData.id)
+                onDelete(noteData.id)
+            } else {
+                navController.navigate(
+                    appScreen.NotePage.createRoute(noteData.id)
+                )
+            }
         },
         colors = CardDefaults.cardColors(
             containerColor = cardColor
@@ -176,10 +214,10 @@ fun NoteCard(
                     .padding(10.dp)
                     .widthIn(max = (screenWidth / 2) - 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            ) {
                 Text(
                     text = noteData.title,
-                    color = if (cardColor == orange10) Color.Black else Color.White,
+                    color = colorText,
                     fontSize = 20.sp,
                     maxLines = 1
                 )
@@ -187,20 +225,23 @@ fun NoteCard(
 
                 Text(
                     text = noteData.content,
-                    color = if (cardColor == orange10) Color.Black else Color.White,
+                    color = colorText,
                     fontSize = 15.sp,
                     maxLines = 5
                 )
             }
-        }
+        },
+        border = borderColor
     )
 }
 
 @Composable
 fun MosaicNoteCard(
     noteCards: List<DataNote>,
-    navController: NavController
-){
+    navController: NavController,
+    deleteState: Boolean,
+    onNoteDeleted: (Int) -> Unit
+) {
     if (noteCards.isEmpty()) {
         Box(
             modifier = Modifier
@@ -224,8 +265,12 @@ fun MosaicNoteCard(
             content = {
                 items(noteCards) { data ->
                     NoteCard(
-                        data,
-                        navController
+                        noteData = data,
+                        navController = navController,
+                        deleteState = deleteState,
+                        onDelete = { deletedId ->
+                            onNoteDeleted(deletedId)
+                        }
                     )
                 }
             }
@@ -234,12 +279,15 @@ fun MosaicNoteCard(
 }
 
 @Composable
-fun MainBottomAppBar(){
+fun MainBottomAppBar(
+    deleteState: Boolean,
+    onDeleteStateChange: (Boolean) -> Unit
+){
     BottomAppBar(
         containerColor = green10,
         content = {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { onDeleteStateChange(!deleteState) },
                 content = {
                     Row {
                         Icon(
@@ -272,23 +320,26 @@ fun MainFloatingActionButton(navController: NavController){
 }
 
 @Composable
-fun MainPage(navController: NavController){
+fun MainPage(navController: NavController) {
     val db = DataBase(LocalContext.current)
-    val allData: List<DataNote> = db.getAllData()
+    var allData by remember { mutableStateOf(db.getAllData()) }
+
+    var deleteState by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            //SearchBar()
+            // SearchBar()
         },
         bottomBar = {
-            //MainBottomAppBar()
+            MainBottomAppBar(deleteState) { boolean ->
+                deleteState = boolean
+            }
         },
         floatingActionButton = {
             MainFloatingActionButton(navController)
         },
         containerColor = black20
     ) { contentPadding ->
-
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
@@ -297,8 +348,13 @@ fun MainPage(navController: NavController){
             DivisorWithText()
 
             MosaicNoteCard(
-                allData,
-                navController
+                noteCards = allData,
+                navController = navController,
+                deleteState = deleteState,
+                onNoteDeleted = { deletedId ->
+                    // Actualizar la lista al borrar
+                    allData = db.getAllData()
+                }
             )
         }
     }

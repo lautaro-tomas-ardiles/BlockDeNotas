@@ -45,7 +45,12 @@ class DataBase(context: Context) :
     }
 
     //insertar datos
-    fun insertData(title: String, content: String, backgroundColor: String, fontSize: Int){
+    fun insertData(
+        title: String,
+        content: String,
+        backgroundColor: String,
+        fontSize: Int
+    ){
         val db = writableDatabase
 
         val values = ContentValues().apply {
@@ -172,7 +177,13 @@ class DataBase(context: Context) :
     }
 
     // Método para actualizar los datos de una nota
-    fun updateData(id: Int, title: String, content: String, backgroundColor: String, fontSize: Int) {
+    fun updateData(
+        id: Int,
+        title: String,
+        content: String,
+        backgroundColor: String,
+        fontSize: Int
+    ) {
         val db = writableDatabase
 
         // Crear los valores que se van a actualizar
@@ -188,6 +199,20 @@ class DataBase(context: Context) :
 
         // Ejecutar la consulta de actualización
         db.update(TABLE_NAME, values, selection, selectionArgs)
+        db.close()
+    }
+
+    //borrar datos por id
+    fun deleteById(id: Int) {
+        val db = writableDatabase
+
+        // Cláusula WHERE para identificar la fila a eliminar
+        val selection = "$COLUMN_ID = ?"
+        val selectionArgs = arrayOf(id.toString())
+
+        // Ejecutar la consulta de eliminación
+        db.delete(TABLE_NAME, selection, selectionArgs)
+
         db.close()
     }
 }

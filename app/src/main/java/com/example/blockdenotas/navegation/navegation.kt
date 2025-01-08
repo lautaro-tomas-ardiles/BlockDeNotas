@@ -1,6 +1,5 @@
 package com.example.blockdenotas.navegation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,7 +21,7 @@ fun AppNavegation(){
             arguments = listOf(navArgument("noteId") { type = NavType.IntType })
         ) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getInt("noteId")
-            // Your note details composable, passing noteId
+
             if (noteId != null) {
                 MainNote(navController, noteId)
             }
