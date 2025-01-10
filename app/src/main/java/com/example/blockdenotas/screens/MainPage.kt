@@ -62,7 +62,6 @@ import com.example.blockdenotas.ui.theme.black20
 import com.example.blockdenotas.ui.theme.blue10
 import com.example.blockdenotas.ui.theme.green10
 import com.example.blockdenotas.ui.theme.orange10
-import com.example.blockdenotas.ui.theme.red10
 
 @Composable
 fun DivisorWithText() {
