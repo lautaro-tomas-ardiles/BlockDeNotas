@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Search
@@ -94,13 +95,19 @@ fun DivisorWithText() {
 }
 
 @Composable
-fun SearchBar(){
+fun SearchBar(onSearch: (String) -> Unit){
+
     var busqueda by remember { mutableStateOf("") }
     var focus by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
-            .padding(bottom = 20.dp, top = 30.dp)
+            .padding(
+                bottom = 20.dp,
+                top = 40.dp,
+                start = 10.dp,
+                end = 10.dp
+            )
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -111,7 +118,8 @@ fun SearchBar(){
                 if (!focus) {
                     Text(
                         "busqueda de notas",
-                        color = black10
+                        color = black10,
+                        fontSize = 18.sp
                     )
                 }
             },
@@ -129,17 +137,16 @@ fun SearchBar(){
             ),
             trailingIcon = {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { onSearch(busqueda) },
                     content = {
                         Icon(
                             imageVector = Icons.Outlined.Search,
-                            contentDescription = "Delete",
+                            contentDescription = "Search",
                         )
                     }
                 )
             },
             modifier = Modifier
-                .padding(horizontal = 30.dp)
                 .fillMaxWidth()
                 .onFocusChanged {
                     focus = it.isFocused
@@ -268,8 +275,8 @@ fun MosaicNoteCard(
                         noteData = data,
                         navController = navController,
                         deleteState = deleteState,
-                        onDelete = { deletedId ->
-                            onNoteDeleted(deletedId)
+                        onDelete = {
+                            deletedId -> onNoteDeleted(deletedId)
                         }
                     )
                 }
@@ -287,17 +294,24 @@ fun MainBottomAppBar(
         containerColor = green10,
         content = {
             IconButton(
-                onClick = { onDeleteStateChange(!deleteState) },
-                content = {
-                    Row {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "Delete",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
+                onClick = {
+                    onDeleteStateChange(!deleteState)
                 }
-            )
+            ) {
+                if (deleteState) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete2",
+                        modifier = Modifier.size(30.dp),
+                    )
+                }else {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "Delete",
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
         }
     )
 }
@@ -328,12 +342,17 @@ fun MainPage(navController: NavController) {
 
     Scaffold(
         topBar = {
-            // SearchBar()
+            SearchBar(
+                onSearch = {
+                    allData = db.getDataByTitle(it)
+                }
+            )
         },
         bottomBar = {
-            MainBottomAppBar(deleteState) { boolean ->
-                deleteState = boolean
-            }
+            MainBottomAppBar(
+                deleteState,
+                onDeleteStateChange = {boolean -> deleteState = boolean}
+            )
         },
         floatingActionButton = {
             MainFloatingActionButton(navController)
@@ -343,16 +362,13 @@ fun MainPage(navController: NavController) {
         Column(
             modifier = Modifier.padding(contentPadding)
         ) {
-            Spacer(modifier = Modifier.padding(10.dp))
-
             DivisorWithText()
 
             MosaicNoteCard(
                 noteCards = allData,
                 navController = navController,
                 deleteState = deleteState,
-                onNoteDeleted = { deletedId ->
-                    // Actualizar la lista al borrar
+                onNoteDeleted = {
                     allData = db.getAllData()
                 }
             )
