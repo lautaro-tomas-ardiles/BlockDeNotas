@@ -2,6 +2,7 @@
 
 package com.example.blockdenotas.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -416,6 +417,7 @@ fun NoteBody(data: DataNote,  backgroundColor: Color) {
 
 @Composable
 fun MainNote(navController: NavController, id: Int) {
+    BackHandler(enabled = true) {}
 
     val db = DataBase(LocalContext.current)
     val data by remember {
