@@ -146,8 +146,8 @@ class DataBase(context: Context) :
         val db = readableDatabase
         val data = mutableListOf<DataNote>()
 
-        val selection = "$COLUMN_TITLES = ?"
-        val selectionArgs = arrayOf(title)
+        val selection = "$COLUMN_TITLES LIKE ?"
+        val selectionArgs = arrayOf("%$title%")
 
         val cursor = db.query(
             TABLE_NAME,   // Nombre de la tabla.
